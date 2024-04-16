@@ -1,0 +1,68 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - template/deployment.yml
+
+configMapGenerator:
+  - name: environment-variables
+    envs: [.env]
+    behavior: create
+
+vars:
+  - name: commitId
+    objref:
+      kind: ConfigMap
+      name: environment-variables
+      apiVersion: v1
+    fieldref:
+      fieldpath: data.commitId
+
+  - name: deploymentId
+    objref:
+      kind: ConfigMap
+      name: environment-variables
+      apiVersion: v1
+    fieldref:
+      fieldpath: data.deploymentId
+
+  - name: subdomain
+    objref:
+      kind: ConfigMap
+      name: environment-variables
+      apiVersion: v1
+    fieldref:
+      fieldpath: data.subdomain
+
+  - name: imageName
+    objref:
+      kind: ConfigMap
+      name: environment-variables
+      apiVersion: v1
+    fieldref:
+      fieldpath: data.imageName
+
+  - name: profile
+    objref:
+      kind: ConfigMap
+      name: environment-variables
+      apiVersion: v1
+    fieldref:
+      fieldpath: data.profile
+
+  - name: memoryRequest
+    objref:
+      kind: ConfigMap
+      name: environment-variables
+      apiVersion: v1
+    fieldref:
+      fieldpath: data.memoryRequest
+
+  - name: memoryLimit
+    objref:
+      kind: ConfigMap
+      name: environment-variables
+      apiVersion: v1
+    fieldref:
+      fieldpath: data.memoryLimit
+

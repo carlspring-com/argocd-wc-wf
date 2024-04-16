@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: $(deploymentId)
+spec:
+  selector:
+    matchLabels:
+      app: $(deploymentId)
+  replicas: 1
+  revisionHistoryLimit: 0
+  template:
+    metadata:
+      labels:
+        app: $(deploymentId)
+      annotations:
+        git.commit/id: $(commitId)
+    spec:
+      containers:
+        - name: $(deploymentId)
+          image: $(imageName)
+          resources:
+            requests:
+              memory: $(memoryRequest)
+            limits:
+              memory: $(memoryLimit)
+          ports:
+            - containerPort: 8080
+          env:
+            - name: PROFILE_ARG
+              value: $(profile)
+            - name: deploymentId
+              value: $(deploymentId)
+#          volumeMounts:
+#            - name: properties
+#              mountPath: "/properties-mounted"
+#              readOnly: true
+#      volumes:
+#        - name: properties
+#          projected:
+#            sources:
+#              - secret:
+#                  name: secret-properties
+#                  items:
+#                    - key: properties
+#                      path: secret.properties
+#              - configMap:
+#                  name: $(deploymentId)
+#                  items:
+#                    - key: configmap.properties
+#                      path: configmap.properties
