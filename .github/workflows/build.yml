@@ -1,0 +1,76 @@
+name: Build
+on:
+  push:
+    branches:
+      - 'production'
+      - 'demo'
+      - 'main'
+      - '[0-9]+**'
+      - '[a-zA-Z]+/[0-9]+**'
+      - '!old/**'
+      - '!nobuild/**'
+  workflow_call:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: read
+  checks: write
+  pull-requests: write
+  # Needed to push docker images.
+  packages: write
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 30
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
+        with:
+          # The Gradle wrapper's version (already the default, putting it here to clarity)
+          gradle-version: wrapper
+          # Removing unused files from Gradle User Home before saving to cache (i.e. older versions of gradle)
+          gradle-home-cache-cleanup: true
+          # Cache downloaded JDKs in addition to the default directories.
+          gradle-home-cache-includes: |
+            caches
+            notifications
+            jdks
+          # Only write to the cache for builds on the 'main' and 'release' branches. (Default is 'main' only.)
+          # Builds on other branches will only read existing entries from the cache.
+          #cache-read-only: ${{ github.ref != 'refs/heads/main'  }}
+
+      - name: "Configure image name"
+        run: |
+          branch=${GITHUB_REF#refs/heads/}
+          runNumber=${{ github.run_number }}
+          if [[ ${branch} =~ [0-9]+ ]]; then
+            case="${BASH_REMATCH}"
+            branchId="${case}"
+          else
+            branchId="${branch}"
+          fi
+          
+          imageTag="${branchId}-${runNumber}"
+
+          echo "imageTag=${imageTag}" >> "$GITHUB_ENV"
+          echo "imageName=ghcr.io/steve-todorov/argocd-wc-wf:${imageTag}" >> "$GITHUB_ENV"
+
+      - name: Build modules and docker image
+        run: |
+          ./gradlew build bootBuildImage --imageName="${imageName}" --scan --stacktrace
+
+      - name: Docker Push
+        run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io --username "${{ github.actor }}" --password-stdin
+          docker push "${imageName}"
