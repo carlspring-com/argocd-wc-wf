@@ -89,7 +89,7 @@ jobs:
 
       - name: Setup git user
         run: |
-          git config user.name ${{ github.actor }}
+          git config user.name github-actions-bot
           git config user.email 41898282+github-actions[bot]@users.noreply.github.com
           git remote add gh-token "https://${{ secrets.PAT }}@github.com/steve-todorov/argocd-wc-wf-gitops.git"
 
@@ -97,9 +97,9 @@ jobs:
         id: branch-name
         run: echo "::set-output name=branch::${GITHUB_REF#refs/heads/}"
 
-      - name: Create and Checkout Branch
-        run: |
-          git checkout -b ${{ steps.branch-name.outputs.branch }} || echo "Git branch already ${{ steps.branch-name.outputs.branch }}"
+      #- name: Create and Checkout Branch
+      #  run: |
+      #    git checkout -b ${{ steps.branch-name.outputs.branch }} || echo "Git branch already ${{ steps.branch-name.outputs.branch }}"
 
       - name: Create Example File
         run: echo "This is an example file." > example.txt
@@ -111,8 +111,12 @@ jobs:
           token: ${{ secrets.PAT }}
           author: "${{ github.actor }} <41898282+github-actions[bot]@users.noreply.github.com>"
           commit-message: "${{ steps.branch-name.outputs.branch }} auto generated pr"
-          title: "example"
-          body: ""
-          labels: automated pr
+          title: "Preview: ${{ github.repository }} branch ${{ steps.branch-name.outputs.branch }}"
+          body: |
+            ## Details
+            
+            This is a preview environment PR created from `${{ github.repository }}` via branch `${{ steps.branch-name.outputs.branch }}`.
+
+          labels: automated env-preview ${{ github.repository }}
           branch: ${{ steps.branch-name.outputs.branch }}
           #delete-branch: true
