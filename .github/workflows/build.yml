@@ -13,7 +13,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
   issues: read
   checks: write
   pull-requests: write
@@ -24,6 +24,7 @@ jobs:
   build:
     runs-on: ubuntu-22.04
     timeout-minutes: 30
+    if: ${{ true == false }}
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -79,7 +80,39 @@ jobs:
   deploy:
     runs-on: ubuntu-22.04
     timeout-minutes: 30
+    needs: [ build ]
+    if: success() && github.ref != 'refs/heads/main'
     steps:
       - uses: actions/checkout@v4
         with:
           repository: 'steve-todorov/argocd-wc-wf-gitops'
+
+      - name: Setup git user
+        run: |
+          git config user.name ${{ github.actor }}
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git remote add gh-token "https://${{ secrets.PAT }}@github.com/steve-todorov/argocd-wc-wf-gitops.git"
+
+      - name: Determine Branch Name
+        id: branch-name
+        run: echo "::set-output name=branch::${GITHUB_REF#refs/heads/}"
+
+      - name: Create and Checkout Branch
+        run: |
+          git checkout -b ${{ steps.branch-name.outputs.branch }} || echo "Git branch already ${{ steps.branch-name.outputs.branch }}"
+
+      - name: Create Example File
+        run: echo "This is an example file." > example.txt
+
+      - name: Create PR
+        uses: peter-evans/create-pull-request@v5
+        id: pr
+        with:
+          token: ${{ secrets.PAT }}
+          author: "${{ github.actor }} <41898282+github-actions[bot]@users.noreply.github.com>"
+          commit-message: "${{ steps.branch-name.outputs.branch }} auto generated pr"
+          title: "example"
+          body: ""
+          labels: automated pr
+          branch: ${{ steps.branch-name.outputs.branch }}
+          #delete-branch: true
