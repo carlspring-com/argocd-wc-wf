@@ -115,7 +115,7 @@ jobs:
           body: |
             ## Details
             
-            This is a preview environment PR created from `${{ github.repository }}` via branch `${{ steps.branch-name.outputs.branch }}`.
+            This is a preview environment PR created from [`${{ github.repository }}`](https://github.com/${{ github.repository }}) via branch [`${{ steps.branch-name.outputs.branch }}`](https://github.com/${{ github.repository }}/tree/${{ steps.branch-name.outputs.branch }}).
 
           labels: automated env-preview ${{ github.repository }}
           branch: ${{ steps.branch-name.outputs.branch }}
