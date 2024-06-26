@@ -77,8 +77,9 @@ jobs:
       - name: Docker Push
         run: |
           echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io --username "${{ github.actor }}" --password-stdin
+          set -x
           docker image tag "${imageName}" "${imageRepo}:${imageTagLatest}"
-          docker push --all-tags "${imageName}"
+          docker push "${imageName}" --all-tags
 
 
   # deploy:
