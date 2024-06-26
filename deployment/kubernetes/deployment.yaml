@@ -20,6 +20,7 @@ spec:
       containers:
         - name: DEPLOYMENT_ID
           image: IMAGE_NAME
+          imagePullPolicy: Always
 #          resources:
 #            requests:
 #              memory: $(memoryRequest)
@@ -32,3 +33,11 @@ spec:
 #              value: $(profile)
 #            - name: deploymentId
 #              value: DEPLOYMENT_ID
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: DEPLOYMENT_ID
+data:
+  configmap.properties: ""
+
