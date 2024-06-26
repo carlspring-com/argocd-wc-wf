@@ -69,6 +69,7 @@ jobs:
           echo "imageTagLatest=${imageTagLatest}" >> "$GITHUB_ENV"
           echo "imageRepo=${imageRepo}" >> "$GITHUB_ENV"
           echo "imageName=${imageRepo}:${imageTag}" >> "$GITHUB_ENV"
+          echo "imageNameLatest=${imageRepo}:${imageTagLatest}" >> "$GITHUB_ENV"
 
       - name: Build modules and docker image
         run: |
@@ -77,9 +78,9 @@ jobs:
       - name: Docker Push
         run: |
           echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io --username "${{ github.actor }}" --password-stdin
-          set -x
           docker image tag "${imageName}" "${imageRepo}:${imageTagLatest}"
-          docker push "${imageName}" --all-tags
+          docker push "${imageName}"
+          docker push "${imageNameLatest}"
 
 
   # deploy:
