@@ -61,11 +61,14 @@ jobs:
             branchId="${branch}"
           fi
           
-          imageTag="${branchId}-${runNumber}" >> "$GITHUB_ENV"
+          imageTag="${branchId}-${runNumber}"
+          echo "imageTag=${imageTag}" >> "$GITHUB_ENV"
+
           imageTagLatest="${branchId}-latest" >> "$GITHUB_ENV"
+          echo "imageTagLatest=${imageTagLatest}" >> "$GITHUB_ENV"
 
           echo "imageTag=${imageTag}" >> "$GITHUB_ENV"
-          ehco "imageRepo=ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}" >> "$GITHUB_ENV"
+          echo "imageRepo=ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}" >> "$GITHUB_ENV"
           echo "imageName=${imageRepo}:${imageTag}" >> "$GITHUB_ENV"
 
       - name: Build modules and docker image
