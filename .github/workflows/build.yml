@@ -61,10 +61,12 @@ jobs:
             branchId="${branch}"
           fi
           
-          imageTag="${branchId}-${runNumber}"
+          imageTag="${branchId}-${runNumber}" >> "$GITHUB_ENV"
+          imageTagLatest="${branchId}-latest" >> "$GITHUB_ENV"
 
           echo "imageTag=${imageTag}" >> "$GITHUB_ENV"
-          echo "imageName=ghcr.io/steve-todorov/argocd-wc-wf:${imageTag}" >> "$GITHUB_ENV"
+          ehco "imageRepo=ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}" >> "$GITHUB_ENV"
+          echo "imageName=${imageRepo}:${imageTag}" >> "$GITHUB_ENV"
 
       - name: Build modules and docker image
         run: |
@@ -73,7 +75,8 @@ jobs:
       - name: Docker Push
         run: |
           echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io --username "${{ github.actor }}" --password-stdin
-          docker push "${imageName}"
+          docker image tag "${imageName}" "${imageRepo}:${imageTagLatest}"
+          docker push --all-tags "${imageName}"
 
 
   # deploy:
