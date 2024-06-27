@@ -23,13 +23,15 @@ spec:
         - name: DEPLOYMENT_ID
           image: IMAGE_NAME
           imagePullPolicy: Always
+          ports:
+            - name: http
+              protocol: TCP
+              containerPort: 8080
 #          resources:
 #            requests:
 #              memory: $(memoryRequest)
 #            limits:
 #              memory: $(memoryLimit)
-#          ports:
-#            - containerPort: 8080
 #          env:
 #            - name: PROFILE_ARG
 #              value: $(profile)
@@ -55,51 +57,55 @@ spec:
   ports:
     - port: 80
       targetPort: 8080
+      name: http
   selector:
     app: DEPLOYMENT_ID
----
-apiVersion: traefik.containo.us/v1alpha1
-kind: Middleware
-metadata:
-  name: https-middleware-chain
-  annotations:
-    app.kubernetes.io/part-of: DEPLOYMENT_ID
-spec:
-  chain:
-    middlewares:
-      - name: ingress-traefik-no-robots@kubernetescrd
-      - name: ingress-traefik-no-server-version@kubernetescrd
----
-apiVersion: traefik.containo.us/v1alpha1
-kind: Middleware
-metadata:
-  name: http-middleware-chain
-  annotations:
-    app.kubernetes.io/part-of: DEPLOYMENT_ID
-spec:
-  chain:
-    middlewares:
-      - name: ingress-traefik-redirect-to-https@kubernetescrd
-      - name: ingress-traefik-no-robots@kubernetescrd
-      - name: ingress-traefik-no-server-version@kubernetescrd
 ---
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: redirect-to-https-ingress
-  namespace: databases
+  name: DEPLOYMENT_ID_redirect-to-https-ingress
   annotations:
     app.kubernetes.io/part-of: DEPLOYMENT_ID
     traefik.ingress.kubernetes.io/router.entrypoints: http
     traefik.ingress.kubernetes.io/router.middlewares: argocd-http-middleware-chain@kubernetescrd
 spec:
   rules:
-    - host: staging.argocd.carlspring.org
+    - host: DOMAIN
       http:
         paths:
           - backend:
               service:
-                name: postgres-service
+                name: DEPLOYMENT_ID
                 port:
-                  name: pgadmin
+                  name: http
             pathType: ImplementationSpecific
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: DEPLOYMENT_ID_https-ingress
+  annotations:
+    traefik.ingress.kubernetes.io/router.entrypoints: https
+    traefik.ingress.kubernetes.io/router.middlewares: argocd-https-middleware-chain@kubernetescrd
+    traefik.ingress.kubernetes.io/router.tls: "true"
+    cert-manager.io/cluster-issuer: "letsencrypt-production-carlspring"
+spec:
+  tls:
+    - hosts:
+        - carlspring.org
+        - "*.carlspring.org"
+        - "*.argocd.carlspring.org"
+      secretName: carlspring-org-production-tls
+      #secretName: carlspring-org-staging-tls
+  rules:
+    - host: DEPLOYMENT_ID.carlspring.org
+      http:
+        paths:
+          - backend:
+              service:
+                name: DEPLOYMENT_ID
+                port:
+                  name: http
+            pathType: ImplementationSpecific
+
