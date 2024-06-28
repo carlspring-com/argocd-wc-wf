@@ -32,11 +32,11 @@ spec:
               memory: MEMORY_REQUEST
             limits:
               memory: MEMORY_LIMIT
-#          env:
-#            - name: PROFILE_ARG
-#              value: PROFILE_ARG
-#            - name: deploymentId
-#              value: DEPLOYMENT_ID
+          env:
+            - name: PROFILE_ARG
+              value: PROFILE_ARG
+            - name: DEPLOYMENT_ID
+              value: DEPLOYMENT_ID
 ---
 apiVersion: v1
 kind: ConfigMap
