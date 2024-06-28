@@ -1,0 +1,3 @@
+isNewRelicEnabled: true
+memoryRequest: 50Mi
+memoryLimit: 2Gi
