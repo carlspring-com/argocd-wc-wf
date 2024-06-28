@@ -61,8 +61,10 @@ jobs:
             branchId="${branch}"
           fi
           
+          shortSHA=$(echo ${GITHUB_SHA} | cut -c1-7)
           imageTag="${branchId}-${runNumber}"
-          imageTagLatest="${branchId}-latest" >> "$GITHUB_ENV"
+          imageTagLatest="${branchId}-latest"
+          imageTagSHA="${branchId}-${shortSHA}"
           imageRepo="ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}"
 
           echo "imageTag=${imageTag}" >> "$GITHUB_ENV"
@@ -70,6 +72,7 @@ jobs:
           echo "imageRepo=${imageRepo}" >> "$GITHUB_ENV"
           echo "imageName=${imageRepo}:${imageTag}" >> "$GITHUB_ENV"
           echo "imageNameLatest=${imageRepo}:${imageTagLatest}" >> "$GITHUB_ENV"
+          echo "imageNameSHA=${imageRepo}:${imageTagSHA}" >> "$GITHUB_ENV"
 
       - name: Build modules and docker image
         run: |
@@ -78,9 +81,11 @@ jobs:
       - name: Docker Push
         run: |
           echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io --username "${{ github.actor }}" --password-stdin
-          docker image tag "${imageName}" "${imageRepo}:${imageTagLatest}"
+          docker image tag "${imageName}" "${imageNameLatest}"
+          docker image tag "${imageName}" "${imageNameSHA}"
           docker push "${imageName}"
           docker push "${imageNameLatest}"
+          docker push "${imageNameSHA}"
 
 
   # deploy:
