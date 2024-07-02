@@ -1,0 +1,3 @@
+keycloakServerUrl: https://abcde.local.cluster
+memoryRequest: 1Gi
+memoryLimit: 3Gi
